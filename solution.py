@@ -37,8 +37,13 @@ class Paddle:
 
 def draw(win, paddles):
     win.fill(BLACK)
-    for paddle in paddles:
+    for paddle in paddles: 
         paddle.draw(win)
+    
+    for i in range(10, HEIGHT, HEIGHT//20):
+        if i % 2 == 1:
+            continue
+        pygame.draw.rect(win, WHITE, (WIDTH//2 - 5, i, 6, HEIGHT//20))
 
     pygame.display.update()
 
@@ -64,7 +69,7 @@ def main():
     right_paddle = Paddle(WIDTH - 10 - PADDLE_WIDTH, HEIGHT//2 - PADDLE_HEIGHT//2, PADDLE_WIDTH, PADDLE_HEIGHT)
 
     while run:
-        clock.tick(FPS) # setting frame rate
+        clock.tick(FPS)# setting frame rate 
         draw(WIN, [left_paddle, right_paddle])
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

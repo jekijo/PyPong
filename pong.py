@@ -1,4 +1,3 @@
-from numpy import diff
 import pygame
 pygame.init()
 

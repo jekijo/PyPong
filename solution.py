@@ -1,3 +1,4 @@
+from numpy import diff
 import pygame
 pygame.init()
 
@@ -13,6 +14,7 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 PADDLE_WIDTH, PADDLE_HEIGHT = 20, 100
+BALL_RADIUS = 7
 
 # paddle creation
 class Paddle:
@@ -34,8 +36,55 @@ class Paddle:
         else:
             self.y += self.VEL
 
+#ball creation
+class Ball:
+    MAX_VEL = 5
+    COLOR = WHITE
 
-def draw(win, paddles):
+    def __init__(self, x, y, radius):
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.x_vel = self.MAX_VEL
+        self.y_vel = 0
+
+    def draw(self, win):
+        pygame.draw.circle(win, self.COLOR, (self.x, self.y), self.radius)
+
+    def move(self):
+        self.x += self.x_vel
+        self.y += self.y_vel
+
+
+def handle_collision(ball, left_paddle, right_paddle):
+    if ball.y + ball.radius >= HEIGHT:
+        ball.y_vel *= -1
+    elif ball.y - ball.radius <=0:
+        ball.y_vel *= -1
+    
+    if ball.x_vel < 0:
+        if ball.y >= left_paddle.y and ball.y <= left_paddle.y + left_paddle.height:
+            if ball.x - ball.radius <= left_paddle.x + left_paddle.width:
+                ball.x_vel *= -1
+
+                middle_y = left_paddle.y + left_paddle.height / 2
+                diff_in_y = middle_y - ball.y
+                reduction_factor = (left_paddle.height / 2) / ball.MAX_VEL
+                y_vel = diff_in_y / reduction_factor
+                ball.y_vel = -1*y_vel 
+    else:
+        if ball.y >= right_paddle.y and ball.y <= right_paddle.y + right_paddle.height:
+            if ball.x + ball.radius >= right_paddle.x:
+                ball.x_vel *= -1
+
+                middle_y = right_paddle.y + right_paddle.height / 2
+                diff_in_y = middle_y - ball.y
+                reduction_factor = (right_paddle.height / 2) / ball.MAX_VEL
+                y_vel = diff_in_y / reduction_factor
+                ball.y_vel = -1*y_vel 
+
+
+def draw(win, paddles, ball):
     win.fill(BLACK)
     for paddle in paddles: 
         paddle.draw(win)
@@ -43,7 +92,9 @@ def draw(win, paddles):
     for i in range(10, HEIGHT, HEIGHT//20):
         if i % 2 == 1:
             continue
-        pygame.draw.rect(win, WHITE, (WIDTH//2 - 5, i, 6, HEIGHT//20))
+        pygame.draw.rect(win, WHITE, (WIDTH//2 - 2, i, 4, HEIGHT//20))
+    
+    ball.draw(win)
 
     pygame.display.update()
 
@@ -68,9 +119,11 @@ def main():
     left_paddle = Paddle(10, HEIGHT//2 - PADDLE_HEIGHT//2, PADDLE_WIDTH, PADDLE_HEIGHT)
     right_paddle = Paddle(WIDTH - 10 - PADDLE_WIDTH, HEIGHT//2 - PADDLE_HEIGHT//2, PADDLE_WIDTH, PADDLE_HEIGHT)
 
+    ball = Ball(WIDTH//2, HEIGHT//2, 7)
+
     while run:
         clock.tick(FPS)# setting frame rate 
-        draw(WIN, [left_paddle, right_paddle])
+        draw(WIN, [left_paddle, right_paddle], ball)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -78,6 +131,9 @@ def main():
 
         keys = pygame.key.get_pressed()
         handle_paddle_movement(keys, left_paddle, right_paddle)
+
+        ball.move()
+        handle_collision(ball, left_paddle, right_paddle)
 
     pygame.quit()
 
